@@ -1,0 +1,55 @@
+/* ==========================================================================
+   BillApp — animations.css
+   Shared transitions for screen navigation, toasts, sheets.
+   ========================================================================== */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes sheet-in {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.screen {
+  animation: fade-in var(--duration-slow) var(--ease-standard);
+}
+
+.card,
+.nav-tile,
+.list-item,
+.stat-card {
+  animation: slide-up var(--duration-base) var(--ease-standard);
+}
+
+.modal-backdrop {
+  animation: fade-in var(--duration-fast) var(--ease-standard);
+}
+
+.modal-sheet {
+  animation: sheet-in var(--duration-base) var(--ease-standard);
+}
+
+.toast {
+  animation: scale-in var(--duration-base) var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
