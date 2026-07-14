@@ -16,13 +16,11 @@ async function renderSheetOffscreen(vm) {
   host.appendChild(sheetEl);
   document.body.appendChild(host);
 
-  const img = sheetEl.querySelector('img');
-  if (img && !img.complete) {
-    await new Promise((resolve) => {
-      img.addEventListener('load', resolve, { once: true });
-      img.addEventListener('error', resolve, { once: true });
-    });
-  }
+  const images = Array.from(sheetEl.querySelectorAll('img')).filter((img) => !img.complete);
+  await Promise.all(images.map((img) => new Promise((resolve) => {
+    img.addEventListener('load', resolve, { once: true });
+    img.addEventListener('error', resolve, { once: true });
+  })));
 
   return { sheetEl, cleanup: () => host.remove() };
 }
@@ -47,20 +45,19 @@ export async function generateInvoicePdfBlob(vm) {
 
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
-    const imgWidth = pageWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let imgWidth = pageWidth;
+    let imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    let heightLeft = imgHeight;
-    let position = 0;
-    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    while (heightLeft > 0) {
-      position -= pageHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+    // The sheet is designed to fit one A4 page, but canvas pixel rounding can
+    // push imgHeight a hair past pageHeight — scale down (never up) to fit
+    // rather than spilling a near-blank second page.
+    if (imgHeight > pageHeight) {
+      imgWidth = (imgWidth * pageHeight) / imgHeight;
+      imgHeight = pageHeight;
     }
+
+    const x = (pageWidth - imgWidth) / 2;
+    pdf.addImage(imgData, 'JPEG', x, 0, imgWidth, imgHeight);
 
     return pdf.output('blob');
   } finally {

@@ -1,6 +1,9 @@
 import { el } from '../../utils/domHelpers.js';
 import { formatAmount, formatDateDisplay } from '../formatters.js';
 
+/** The one official logo image, shown beside the business name in the invoice header. */
+const LOGO_SRC = 'assets/logo.png';
+
 /**
  * Invoice data -> HTML. This is the ONLY place the invoice layout is defined.
  * The preview screen, window.print(), and the PDF renderer (which rasterizes
@@ -14,25 +17,31 @@ export function renderInvoiceSheet(vm) {
     value ? [el('dt', {}, [label]), el('dd', {}, [String(value)])] : []
   )));
 
+  const phones = vm.business.phones.filter(Boolean);
   const header = el('div', { class: 'invoice-header' }, [
-    el('div', {}, [
-      el('div', { class: 'invoice-header__name' }, [vm.business.name]),
-      el('div', { class: 'invoice-header__address' }, [vm.business.addressLines.join(', ')]),
-      el('div', { class: 'invoice-header__contact' }, [
-        [vm.business.gstin ? `GSTIN: ${vm.business.gstin}` : '', vm.business.phones.filter(Boolean).join(' / ')]
-          .filter(Boolean).join('   ·   '),
-      ]),
-      vm.business.email ? el('div', { class: 'invoice-header__contact' }, [vm.business.email]) : null,
-    ]),
-    el('div', { class: 'invoice-header__title-block' }, [
+    el('div', { class: 'invoice-header__title-row' }, [
       el('span', { class: 'invoice-header__title' }, [vm.business.invoiceTitle]),
     ]),
+    el('div', { class: 'invoice-header__brand-row' }, [
+      el('img', { class: 'invoice-header__logo', src: LOGO_SRC, alt: '' }),
+      el('span', { class: 'invoice-header__name' }, [vm.business.name]),
+    ]),
+    el('div', { class: 'invoice-header__address' }, [vm.business.addressLines.join(', ')]),
+    vm.business.gstin
+      ? el('div', { class: 'invoice-header__gstin' }, [`GSTIN : ${vm.business.gstin}`])
+      : null,
+    (phones.length || vm.business.email)
+      ? el('div', { class: 'invoice-header__contact' }, [
+          phones.length ? el('span', {}, [`Mob : ${phones.join(', ')}`]) : null,
+          vm.business.email ? el('span', {}, [`Email : ${vm.business.email}`]) : null,
+        ])
+      : null,
   ]);
 
   const metaGrid = el('div', { class: 'invoice-meta-grid' }, [
     el('div', {}, [
       el('div', { class: 'invoice-section-title' }, ['Invoice Details']),
-      dl({ rows: [
+      dl({ class: 'invoice-kv invoice-kv--compact', rows: [
         ['Invoice No.', vm.invoiceNumber],
         ['Invoice Date', formatDateDisplay(vm.invoiceDate)],
         ['Date of Supply', formatDateDisplay(vm.dateOfSupply)],
@@ -45,7 +54,7 @@ export function renderInvoiceSheet(vm) {
       dl({ rows: [
         ['Customer No.', vm.customer.customerNumber],
         ['GSTIN', vm.customer.gstin],
-        ['State', [vm.customer.state, vm.customer.stateCode].filter(Boolean).join(' / ')],
+        ['State / State Code', [vm.customer.state, vm.customer.stateCode].filter(Boolean).join(' / ')],
         ['Place of Supply', vm.customer.placeOfSupply],
       ] }),
     ]),
@@ -56,12 +65,15 @@ export function renderInvoiceSheet(vm) {
     ? el('div', { class: 'invoice-transport-section' }, [
         el('div', { class: 'invoice-section-title' }, ['Transportation Details']),
         el('dl', { class: 'invoice-transport-grid' }, [
-          ['Mode', vm.transportMode],
-          ['Vehicle No.', vm.vehicleNumber],
+          ['Transportation Mode', vm.transportMode],
+          ['Vehicle Number', vm.vehicleNumber],
+          ['Broker Name', vm.brokerName],
           ['Driver Name', vm.driverName],
           ['Driver Contact', vm.driverContact],
-          ['Broker Name', vm.brokerName],
-        ].flatMap(([label, value]) => (value ? [el('dt', {}, [label]), el('dd', {}, [value])] : []))),
+        ].map(([label, value]) => el('div', { class: 'invoice-transport-field' }, [
+          el('dt', {}, [label]),
+          el('dd', {}, [value || ' ']),
+        ]))),
       ])
     : null;
 
@@ -70,6 +82,7 @@ export function renderInvoiceSheet(vm) {
       el('tr', {}, [
         el('th', {}, ['#']),
         el('th', {}, ['Item']),
+        el('th', { class: 'num' }, ['Bags']),
         el('th', { class: 'num' }, ['Qty']),
         el('th', { class: 'num' }, ['Rate']),
         el('th', { class: 'num' }, ['Amount']),
@@ -78,7 +91,8 @@ export function renderInvoiceSheet(vm) {
     el('tbody', {}, vm.items.map((item, i) => el('tr', {}, [
       el('td', {}, [String(i + 1)]),
       el('td', {}, [item.name, item.hsn ? el('div', { class: 'u-text-faint', style: 'font-size:10.5px;margin-top:2px;' }, [`HSN ${item.hsn}`]) : null]),
-      el('td', { class: 'num' }, [String(item.qty)]),
+      el('td', { class: 'num' }, [item.bags ? String(item.bags) : '—']),
+      el('td', { class: 'num' }, [`${item.qty} ${item.unit || 'Quintal'}`]),
       el('td', { class: 'num' }, [formatAmount(item.rate)]),
       el('td', { class: 'num' }, [formatAmount(item.amount)]),
     ]))),
@@ -105,6 +119,7 @@ export function renderInvoiceSheet(vm) {
       ] }),
     ]),
     el('div', { class: 'invoice-seal' }, [
+      el('div', { class: 'invoice-seal__for' }, [`For: ${vm.business.name}`]),
       el('img', { src: vm.sealSignatureSrc, alt: 'Seal and authorized signature' }),
       el('div', { class: 'invoice-seal__caption' }, ['Authorized Signatory']),
     ]),

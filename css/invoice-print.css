@@ -23,46 +23,65 @@
 }
 
 .invoice-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
   padding-bottom: 12px;
   border-bottom: 2px solid #1a1f26;
 }
 
-.invoice-header__name {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  margin-bottom: 4px;
-}
-
-.invoice-header__address {
-  font-size: 12px;
-  color: #45505c;
-  max-width: 320px;
-}
-
-.invoice-header__contact {
-  font-size: 12px;
-  color: #45505c;
-  margin-top: 4px;
-}
-
-.invoice-header__title-block {
-  text-align: right;
-  flex-shrink: 0;
+.invoice-header__title-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
 }
 
 .invoice-header__title {
   display: inline-block;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.6px;
-  padding: 6px 14px;
+  padding: 5px 12px;
   border: 1.5px solid #1a1f26;
   border-radius: 4px;
+}
+
+.invoice-header__brand-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.invoice-header__logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.invoice-header__name {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.invoice-header__address {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #45505c;
+  white-space: nowrap;
+}
+
+.invoice-header__gstin {
+  margin-top: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1f26;
+}
+
+.invoice-header__contact {
+  display: flex;
+  gap: 28px;
+  margin-top: 5px;
+  font-size: 12px;
+  color: #45505c;
 }
 
 .invoice-section-title {
@@ -98,6 +117,17 @@
   text-align: right;
 }
 
+.invoice-kv--compact {
+  grid-template-columns: auto auto;
+  justify-content: start;
+  column-gap: 12px;
+  max-width: fit-content;
+}
+
+.invoice-kv--compact dd {
+  text-align: left;
+}
+
 .invoice-customer-name {
   font-size: 14.5px;
   font-weight: 700;
@@ -118,9 +148,14 @@
 
 .invoice-transport-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px 20px;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 28px;
   font-size: 12.5px;
+  margin: 0;
+}
+
+.invoice-transport-field {
+  min-width: 0;
 }
 
 .invoice-transport-grid dt {
@@ -133,6 +168,9 @@
 .invoice-transport-grid dd {
   margin: 2px 0 0;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .invoice-items-table {
@@ -218,6 +256,12 @@
 .invoice-seal {
   text-align: center;
   flex-shrink: 0;
+}
+
+.invoice-seal__for {
+  font-size: 11.5px;
+  font-weight: 700;
+  margin-bottom: 4px;
 }
 
 .invoice-seal img {

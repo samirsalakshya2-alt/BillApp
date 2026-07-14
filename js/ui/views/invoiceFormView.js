@@ -18,13 +18,15 @@ import {
   computeTotalAmount,
   formStateFromInvoice,
   getInvoiceById,
+  QUANTITY_UNITS,
+  DEFAULT_QUANTITY_UNIT,
 } from '../../services/invoiceService.js';
 import { amountToWords } from '../../services/numberToWords.js';
 import { loadDraft, saveDraftDebounced, discardDraft } from '../../services/draftService.js';
 import { setPendingInvoice, getPendingInvoice, clearPendingInvoice } from '../../services/pendingInvoiceStore.js';
 
 function emptyItemRow() {
-  return { rowId: uid('row'), itemId: null, name: '', hsn: '', qty: '', rate: '' };
+  return { rowId: uid('row'), itemId: null, name: '', hsn: '', bags: '', qty: '', unit: DEFAULT_QUANTITY_UNIT, rate: '' };
 }
 
 function emptyFormState({ invoiceNumber, defaultBankId }) {
@@ -56,7 +58,13 @@ function emptyFormState({ invoiceNumber, defaultBankId }) {
 
 function createItemRowEl(row, { onChange, onRemove, canRemove }) {
   const hsnInput = textInput({ value: row.hsn, placeholder: 'HSN' });
+  const bagsInput = numberInput({ value: row.bags, placeholder: 'Bags', min: '0', step: 'any' });
   const qtyInput = numberInput({ value: row.qty, placeholder: 'Qty', min: '0', step: 'any' });
+  const unitSelect = el(
+    'select',
+    { class: 'field__select' },
+    QUANTITY_UNITS.map((unit) => el('option', { value: unit, selected: unit === row.unit }, [unit]))
+  );
   const rateInput = numberInput({ value: row.rate, placeholder: 'Rate ₹', min: '0', step: 'any' });
   const amountEl = el('div', { class: 'u-font-semibold' }, [formatAmount(computeItemAmount(row.qty, row.rate))]);
 
@@ -83,10 +91,18 @@ function createItemRowEl(row, { onChange, onRemove, canRemove }) {
     row.hsn = hsnInput.value;
     onChange({ skipRerender: true });
   });
+  bagsInput.addEventListener('input', () => {
+    row.bags = bagsInput.value;
+    onChange({ skipRerender: true });
+  });
   qtyInput.addEventListener('input', () => {
     row.qty = qtyInput.value;
     amountEl.textContent = formatAmount(computeItemAmount(row.qty, row.rate));
     onChange({ skipRerender: true });
+  });
+  unitSelect.addEventListener('change', () => {
+    row.unit = unitSelect.value;
+    onChange();
   });
   rateInput.addEventListener('input', () => {
     row.rate = rateInput.value;
@@ -108,10 +124,14 @@ function createItemRowEl(row, { onChange, onRemove, canRemove }) {
       formField('Item', nameWrapper),
       el('div', { class: 'form-grid form-grid--2', style: 'gap:12px;grid-template-columns:1fr 1fr;' }, [
         formField('HSN', hsnInput),
-        formField('Quantity', qtyInput),
+        formField('Number of Bags', bagsInput),
       ]),
       el('div', { class: 'form-grid form-grid--2', style: 'gap:12px;grid-template-columns:1fr 1fr;' }, [
-        formField('Rate (₹)', rateInput),
+        formField('Quantity', qtyInput),
+        formField('Quantity Unit', unitSelect),
+      ]),
+      el('div', { class: 'form-grid form-grid--2', style: 'gap:12px;grid-template-columns:1fr 1fr;' }, [
+        formField('Rate (₹ per ' + (row.unit || DEFAULT_QUANTITY_UNIT) + ')', rateInput),
         el('div', { class: 'field' }, [el('label', { class: 'field__label' }, ['Amount']), amountEl]),
       ]),
     ]),

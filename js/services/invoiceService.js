@@ -40,6 +40,13 @@ export async function setInvoiceCounterOverride(nextNumber) {
   await settingsStore.setInvoiceCounter(n - 1);
 }
 
+/**
+ * Quantity units selectable per invoice line. "Quintal" is the default; more
+ * units can be appended here without touching form/renderer code.
+ */
+export const QUANTITY_UNITS = ['Quintal'];
+export const DEFAULT_QUANTITY_UNIT = QUANTITY_UNITS[0];
+
 export function computeItemAmount(qty, rate) {
   const q = Number(qty) || 0;
   const r = Number(rate) || 0;
@@ -79,7 +86,9 @@ export async function saveInvoiceFromForm(formState) {
       itemId: item.id,
       name: item.name,
       hsn: item.hsn,
+      bags: row.bags || '',
       qty: Number(row.qty) || 0,
+      unit: row.unit || DEFAULT_QUANTITY_UNIT,
       rate: Number(row.rate) || 0,
       amount: computeItemAmount(row.qty, row.rate),
     });
@@ -157,7 +166,8 @@ export function formStateFromInvoice(invoice) {
     driverContact: invoice.driverContact || '',
     brokerName: invoice.brokerName || '',
     items: (invoice.items || []).map((it) => ({
-      rowId: uid('row'), itemId: it.itemId, name: it.name, hsn: it.hsn, qty: it.qty, rate: it.rate,
+      rowId: uid('row'), itemId: it.itemId, name: it.name, hsn: it.hsn,
+      bags: it.bags || '', qty: it.qty, unit: it.unit || DEFAULT_QUANTITY_UNIT, rate: it.rate,
     })),
     bankId: invoice.bankId,
     remarks: invoice.remarks || '',

@@ -1,4 +1,4 @@
-import { computeItemAmount, computeTotalAmount } from './invoiceService.js';
+import { computeItemAmount, computeTotalAmount, DEFAULT_QUANTITY_UNIT } from './invoiceService.js';
 import { amountToWords } from './numberToWords.js';
 
 /** The one official seal + authorized signature image, used unmodified on every invoice. */
@@ -30,7 +30,9 @@ export function viewModelFromFormState(formState, { business, bank }) {
   const items = formState.items.map((row) => ({
     name: row.name,
     hsn: row.hsn,
+    bags: row.bags || '',
     qty: Number(row.qty) || 0,
+    unit: row.unit || DEFAULT_QUANTITY_UNIT,
     rate: Number(row.rate) || 0,
     amount: computeItemAmount(row.qty, row.rate),
   }));
