@@ -60,20 +60,26 @@ export function renderInvoiceSheet(vm) {
     ]),
   ]);
 
+  const transportField = ([label, value]) => el('div', { class: 'invoice-transport-field' }, [
+    el('dt', {}, [label]),
+    el('dd', {}, [value || ' ']),
+  ]);
+
   const hasTransportInfo = vm.transportMode || vm.vehicleNumber || vm.driverName || vm.driverContact || vm.brokerName;
   const transportSection = hasTransportInfo
     ? el('div', { class: 'invoice-transport-section' }, [
         el('div', { class: 'invoice-section-title' }, ['Transportation Details']),
-        el('dl', { class: 'invoice-transport-grid' }, [
-          ['Transportation Mode', vm.transportMode],
-          ['Vehicle Number', vm.vehicleNumber],
-          ['Broker Name', vm.brokerName],
-          ['Driver Name', vm.driverName],
-          ['Driver Contact', vm.driverContact],
-        ].map(([label, value]) => el('div', { class: 'invoice-transport-field' }, [
-          el('dt', {}, [label]),
-          el('dd', {}, [value || ' ']),
-        ]))),
+        el('div', { class: 'invoice-transport-columns' }, [
+          el('dl', { class: 'invoice-transport-grid' }, [
+            ['Transportation Mode', vm.transportMode],
+            ['Broker Name', vm.brokerName],
+          ].map(transportField)),
+          el('dl', { class: 'invoice-transport-grid' }, [
+            ['Vehicle Number', vm.vehicleNumber],
+            ['Driver Name', vm.driverName],
+            ['Driver Contact Number', vm.driverContact],
+          ].map(transportField)),
+        ]),
       ])
     : null;
 
@@ -81,18 +87,22 @@ export function renderInvoiceSheet(vm) {
     el('thead', {}, [
       el('tr', {}, [
         el('th', {}, ['#']),
-        el('th', {}, ['Item']),
-        el('th', { class: 'num' }, ['Bags']),
-        el('th', { class: 'num' }, ['Qty']),
+        el('th', {}, ['Description']),
+        el('th', {}, ['HSN']),
+        el('th', { class: 'num' }, ['No. of Bags']),
+        el('th', { class: 'num' }, ['Quantity']),
+        el('th', {}, ['Unit']),
         el('th', { class: 'num' }, ['Rate']),
         el('th', { class: 'num' }, ['Amount']),
       ]),
     ]),
     el('tbody', {}, vm.items.map((item, i) => el('tr', {}, [
       el('td', {}, [String(i + 1)]),
-      el('td', {}, [item.name, item.hsn ? el('div', { class: 'u-text-faint', style: 'font-size:10.5px;margin-top:2px;' }, [`HSN ${item.hsn}`]) : null]),
+      el('td', {}, [item.name]),
+      el('td', {}, [item.hsn || '—']),
       el('td', { class: 'num' }, [item.bags ? String(item.bags) : '—']),
-      el('td', { class: 'num' }, [`${item.qty} ${item.unit || 'Quintal'}`]),
+      el('td', { class: 'num' }, [String(item.qty)]),
+      el('td', {}, [item.unit || 'Quintal']),
       el('td', { class: 'num' }, [formatAmount(item.rate)]),
       el('td', { class: 'num' }, [formatAmount(item.amount)]),
     ]))),

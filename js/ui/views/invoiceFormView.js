@@ -57,7 +57,7 @@ function emptyFormState({ invoiceNumber, defaultBankId }) {
 }
 
 function createItemRowEl(row, { onChange, onRemove, canRemove }) {
-  const hsnInput = textInput({ value: row.hsn, placeholder: 'HSN' });
+  const hsnInput = textInput({ value: row.hsn, placeholder: 'Auto-filled from Item Master', readonly: true });
   const bagsInput = numberInput({ value: row.bags, placeholder: 'Bags', min: '0', step: 'any' });
   const qtyInput = numberInput({ value: row.qty, placeholder: 'Qty', min: '0', step: 'any' });
   const unitSelect = el(
@@ -83,12 +83,12 @@ function createItemRowEl(row, { onChange, onRemove, canRemove }) {
   });
 
   nameInput.addEventListener('input', () => {
+    if (row.itemId) {
+      row.hsn = '';
+      hsnInput.value = '';
+    }
     row.itemId = null;
     row.name = nameInput.value;
-    onChange({ skipRerender: true });
-  });
-  hsnInput.addEventListener('input', () => {
-    row.hsn = hsnInput.value;
     onChange({ skipRerender: true });
   });
   bagsInput.addEventListener('input', () => {
@@ -216,6 +216,7 @@ export async function render(container, params) {
       state.customerState = customer.state || '';
       state.customerStateCode = customer.stateCode || '';
       state.placeOfSupply = customer.placeOfSupply || '';
+      customerNameInput.value = state.customerName;
       customerNumberInput.value = state.customerNumber;
       customerAddressInput.value = state.customerAddress;
       customerGstinInput.value = state.customerGstin;
@@ -253,7 +254,27 @@ export async function render(container, params) {
   driverContactInput.addEventListener('input', () => { state.driverContact = driverContactInput.value; autosave(); });
   brokerNameInput.addEventListener('input', () => { state.brokerName = brokerNameInput.value; autosave(); });
   remarksInput.addEventListener('input', () => { state.remarks = remarksInput.value; autosave(); });
-  customerNameInput.addEventListener('input', () => { state.customerId = null; state.customerName = customerNameInput.value; autosave(); });
+  customerNameInput.addEventListener('input', () => {
+    if (state.customerId) {
+      // Diverging from a previously selected customer — don't let their other
+      // master-record fields (esp. customer number) leak onto a new record.
+      state.customerNumber = '';
+      state.customerAddress = '';
+      state.customerGstin = '';
+      state.customerState = '';
+      state.customerStateCode = '';
+      state.placeOfSupply = '';
+      customerNumberInput.value = '';
+      customerAddressInput.value = '';
+      customerGstinInput.value = '';
+      customerStateInput.value = '';
+      customerStateCodeInput.value = '';
+      placeOfSupplyInput.value = '';
+    }
+    state.customerId = null;
+    state.customerName = customerNameInput.value;
+    autosave();
+  });
   customerNumberInput.addEventListener('input', () => { state.customerNumber = customerNumberInput.value; autosave(); });
   customerAddressInput.addEventListener('input', () => { state.customerAddress = customerAddressInput.value; autosave(); });
   customerGstinInput.addEventListener('input', () => { state.customerGstin = customerGstinInput.value; autosave(); });
@@ -295,17 +316,19 @@ export async function render(container, params) {
         formField('Invoice Number', invoiceNumberInput),
         formField('Invoice Date', invoiceDateInput),
       ]),
+      formField('Date of Supply', dateOfSupplyInput),
+
+      el('div', { class: 'u-font-semibold' }, ['Transportation Details']),
       el('div', { class: 'form-grid form-grid--2' }, [
-        formField('Transportation Mode', transportModeInput),
-        formField('Vehicle Number', vehicleNumberInput),
-      ]),
-      el('div', { class: 'form-grid form-grid--2' }, [
-        formField('Date of Supply', dateOfSupplyInput),
-        formField('Broker Name', brokerNameInput),
-      ]),
-      el('div', { class: 'form-grid form-grid--2' }, [
-        formField('Driver Name', driverNameInput),
-        formField('Driver Contact', driverContactInput),
+        el('div', { class: 'form-grid' }, [
+          formField('Transportation Mode', transportModeInput),
+          formField('Broker Name', brokerNameInput),
+        ]),
+        el('div', { class: 'form-grid' }, [
+          formField('Vehicle Number', vehicleNumberInput),
+          formField('Driver Name', driverNameInput),
+          formField('Driver Contact Number', driverContactInput),
+        ]),
       ]),
 
       el('div', { class: 'u-font-semibold' }, ['Customer']),

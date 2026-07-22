@@ -146,10 +146,16 @@
   border-top: 1px solid #dde1e6;
 }
 
-.invoice-transport-grid {
+.invoice-transport-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px 28px;
+}
+
+.invoice-transport-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
   font-size: 12.5px;
   margin: 0;
 }

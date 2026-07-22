@@ -228,6 +228,12 @@
   box-shadow: 0 0 0 3px rgba(20, 83, 45, 0.15);
 }
 
+.field__input:read-only {
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
 .field__hint {
   font-size: var(--font-size-xs);
   color: var(--color-text-faint);
