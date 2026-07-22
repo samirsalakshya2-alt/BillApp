@@ -60,25 +60,20 @@ export function renderInvoiceSheet(vm) {
     ]),
   ]);
 
-  const transportField = ([label, value]) => el('div', { class: 'invoice-transport-field' }, [
-    el('dt', {}, [`${label} :`]),
-    el('dd', {}, [value || ' ']),
-  ]);
-
   const hasTransportInfo = vm.transportMode || vm.vehicleNumber || vm.driverName || vm.driverContact || vm.brokerName;
   const transportSection = hasTransportInfo
     ? el('div', { class: 'invoice-transport-section' }, [
         el('div', { class: 'invoice-section-title' }, ['Transportation Details']),
         el('div', { class: 'invoice-transport-columns' }, [
-          el('dl', { class: 'invoice-transport-grid' }, [
+          dl({ rows: [
             ['Transportation Mode', vm.transportMode],
             ['Broker Name', vm.brokerName],
-          ].map(transportField)),
-          el('dl', { class: 'invoice-transport-grid' }, [
+          ] }),
+          dl({ rows: [
             ['Vehicle Number', vm.vehicleNumber],
             ['Driver Name', vm.driverName],
             ['Driver Contact Number', vm.driverContact],
-          ].map(transportField)),
+          ] }),
         ]),
       ])
     : null;

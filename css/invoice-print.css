@@ -152,37 +152,6 @@
   gap: 10px 28px;
 }
 
-.invoice-transport-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 6px;
-  font-size: 12.5px;
-  margin: 0;
-}
-
-.invoice-transport-field {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  min-width: 0;
-}
-
-.invoice-transport-grid dt {
-  color: #6b7686;
-  font-weight: 600;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.invoice-transport-grid dd {
-  margin: 0;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
-}
-
 .invoice-items-table {
   width: 100%;
   border-collapse: collapse;
