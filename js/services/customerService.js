@@ -1,5 +1,6 @@
 import * as customerStore from '../db/stores/customerStore.js';
 import { uid } from '../utils/uid.js';
+import { scheduleAutoBackup } from './autoBackupService.js';
 
 export async function listCustomers() {
   const all = await customerStore.getAllCustomers();
@@ -39,11 +40,14 @@ export async function saveCustomer(fields) {
     updatedAt: now,
   };
   await customerStore.saveCustomer(record);
+  scheduleAutoBackup();
   return record;
 }
 
 export async function deleteCustomer(id) {
-  return customerStore.deleteCustomer(id);
+  const result = await customerStore.deleteCustomer(id);
+  scheduleAutoBackup();
+  return result;
 }
 
 /**

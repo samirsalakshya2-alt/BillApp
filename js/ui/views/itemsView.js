@@ -6,13 +6,16 @@ import { mountFab } from '../components/fab.js';
 import { getFabRootEl } from '../../router.js';
 import { showToast } from '../components/toast.js';
 import { isNonEmpty } from '../../utils/validators.js';
-import { listItems, searchItems, saveItem, deleteItem } from '../../services/itemService.js';
+import { listItems, searchItems, saveItem, deleteItem, DEFAULT_ITEM_UNIT } from '../../services/itemService.js';
+import { QUANTITY_UNITS } from '../../services/invoiceService.js';
 
 function itemListItem(item, onEdit) {
   return el('button', { class: 'list-item', type: 'button', onclick: () => onEdit(item) }, [
     el('div', { class: 'list-item__body' }, [
       el('div', { class: 'list-item__title' }, [item.name]),
-      el('div', { class: 'list-item__subtitle' }, [item.hsn ? `HSN ${item.hsn}` : 'No HSN on file']),
+      el('div', { class: 'list-item__subtitle' }, [
+        [item.hsn ? `HSN ${item.hsn}` : null, item.unit || DEFAULT_ITEM_UNIT].filter(Boolean).join(' · '),
+      ]),
     ]),
   ]);
 }
@@ -30,10 +33,17 @@ function openItemEditor(item, { onSaved, onDeleted }) {
 
   const nameInput = textInput({ value: it.name || '' });
   const hsnInput = textInput({ value: it.hsn || '' });
+  const unit = it.unit || DEFAULT_ITEM_UNIT;
+  const unitSelect = el(
+    'select',
+    { class: 'field__select' },
+    QUANTITY_UNITS.map((u) => el('option', { value: u, selected: u === unit }, [u]))
+  );
 
   const body = el('div', { class: 'form-grid' }, [
     formField('Item Name', nameInput),
     formField('HSN', hsnInput),
+    formField('Default Unit', unitSelect),
   ]);
 
   const actions = [
@@ -42,7 +52,7 @@ function openItemEditor(item, { onSaved, onDeleted }) {
       label: 'Save',
       variant: 'primary',
       onClick: async () => {
-        const fields = { id: it.id, name: nameInput.value, hsn: hsnInput.value };
+        const fields = { id: it.id, name: nameInput.value, hsn: hsnInput.value, unit: unitSelect.value };
         if (!isNonEmpty(fields.name)) {
           showToast('Item name is required.', { type: 'error' });
           throw new Error('validation failed');

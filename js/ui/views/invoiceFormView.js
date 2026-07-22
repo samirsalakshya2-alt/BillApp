@@ -57,7 +57,7 @@ function emptyFormState({ invoiceNumber, defaultBankId }) {
 }
 
 function createItemRowEl(row, { onChange, onRemove, canRemove }) {
-  const hsnInput = textInput({ value: row.hsn, placeholder: 'Auto-filled from Item Master', readonly: true });
+  const hsnInput = textInput({ value: row.hsn, placeholder: 'HSN' });
   const bagsInput = numberInput({ value: row.bags, placeholder: 'Bags', min: '0', step: 'any' });
   const qtyInput = numberInput({ value: row.qty, placeholder: 'Qty', min: '0', step: 'any' });
   const unitSelect = el(
@@ -75,20 +75,30 @@ function createItemRowEl(row, { onChange, onRemove, canRemove }) {
     onSelect: (item) => {
       row.itemId = item.id;
       row.name = item.name;
-      row.hsn = item.hsn;
+      row.hsn = item.hsn || '';
+      row.unit = item.unit || DEFAULT_QUANTITY_UNIT;
       nameInput.value = item.name;
-      hsnInput.value = item.hsn;
+      hsnInput.value = row.hsn;
+      unitSelect.value = row.unit;
       onChange();
     },
   });
 
   nameInput.addEventListener('input', () => {
     if (row.itemId) {
+      // Diverging from a previously selected item — don't let its HSN/unit
+      // leak onto what may become a different (new) item.
       row.hsn = '';
+      row.unit = DEFAULT_QUANTITY_UNIT;
       hsnInput.value = '';
+      unitSelect.value = DEFAULT_QUANTITY_UNIT;
     }
     row.itemId = null;
     row.name = nameInput.value;
+    onChange({ skipRerender: true });
+  });
+  hsnInput.addEventListener('input', () => {
+    row.hsn = hsnInput.value;
     onChange({ skipRerender: true });
   });
   bagsInput.addEventListener('input', () => {

@@ -6,6 +6,7 @@ import { showToast } from '../components/toast.js';
 import { navigate } from '../../router.js';
 import { getBusiness } from '../../services/businessService.js';
 import { getNextInvoiceNumber, setInvoiceCounterOverride } from '../../services/invoiceService.js';
+import { APP_VERSION } from '../../../config/appVersion.js';
 
 function openInvoiceCounterEditor(currentNext, onSaved) {
   const input = numberInput({ value: currentNext, min: '1', step: '1' });
@@ -75,7 +76,7 @@ export async function render(container) {
           el('div', { class: 'u-font-semibold u-text-muted' }, ['About']),
           el('div', {}, [business.name]),
           el('div', {}, [business.addressLines.join(', ')]),
-          el('div', {}, ['BillApp v1.0 — offline billing, installed on this device']),
+          el('div', {}, [`BillApp v${APP_VERSION} — offline billing, installed on this device`]),
         ]),
       ]),
     ]);

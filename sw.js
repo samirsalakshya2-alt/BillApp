@@ -10,7 +10,7 @@
  * — the browser won't otherwise know to re-fetch it.
  */
 
-const CACHE_VERSION = 'v11';
+const CACHE_VERSION = 'v12';
 const CACHE_NAME = `billapp-shell-${CACHE_VERSION}`;
 
 const PRECACHE_URLS = [
@@ -30,6 +30,7 @@ const PRECACHE_URLS = [
   './libs/html2canvas.min.js',
 
   './config/business.js',
+  './config/appVersion.js',
   './data/seed.js',
 
   './js/app.js',
@@ -69,6 +70,7 @@ const PRECACHE_URLS = [
   './js/services/reportService.js',
   './js/services/businessService.js',
   './js/services/backupService.js',
+  './js/services/autoBackupService.js',
 
   './js/db/database.js',
   './js/db/backup.js',

@@ -61,7 +61,7 @@ export function renderInvoiceSheet(vm) {
   ]);
 
   const transportField = ([label, value]) => el('div', { class: 'invoice-transport-field' }, [
-    el('dt', {}, [label]),
+    el('dt', {}, [`${label} :`]),
     el('dd', {}, [value || ' ']),
   ]);
 

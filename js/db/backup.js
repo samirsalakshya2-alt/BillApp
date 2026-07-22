@@ -2,11 +2,19 @@ import { STORE_NAMES, getAll, putMany, clearStore } from './database.js';
 
 const FORMAT_VERSION = 1;
 
+/** Settings keys that hold device-local, non-JSON-serializable objects (e.g. a FileSystemDirectoryHandle) — never part of a portable backup. */
+const NON_PORTABLE_SETTINGS_KEYS = new Set(['backupDirHandle']);
+
+function portableSettings(records) {
+  return (records || []).filter((r) => !NON_PORTABLE_SETTINGS_KEYS.has(r.key));
+}
+
 export async function exportAllData() {
   const data = {};
   for (const store of STORE_NAMES) {
     data[store] = await getAll(store);
   }
+  data.settings = portableSettings(data.settings);
   return { formatVersion: FORMAT_VERSION, exportedAt: new Date().toISOString(), data };
 }
 
@@ -35,21 +43,28 @@ export function summarizeBackup(payload) {
 export async function importMerge(payload) {
   validateBackup(payload);
   for (const store of STORE_NAMES) {
-    const records = payload.data[store];
+    const records = store === 'settings' ? portableSettings(payload.data[store]) : payload.data[store];
     if (Array.isArray(records) && records.length) {
       await putMany(store, records);
     }
   }
 }
 
-/** Wipes every store, then loads the backup exactly — a full, destructive rollback to that snapshot. */
+/** Wipes every store, then loads the backup exactly — a full, destructive rollback to that snapshot. The device's own backup-folder handle is device-local config, not app data, so it survives the wipe untouched. */
 export async function restoreReplace(payload) {
   validateBackup(payload);
+  const existingSettings = await getAll('settings');
+  const deviceLocalSettings = existingSettings.filter((r) => NON_PORTABLE_SETTINGS_KEYS.has(r.key));
+
   for (const store of STORE_NAMES) {
     await clearStore(store);
-    const records = payload.data[store];
+    const records = store === 'settings' ? portableSettings(payload.data[store]) : payload.data[store];
     if (Array.isArray(records) && records.length) {
       await putMany(store, records);
     }
+  }
+
+  if (deviceLocalSettings.length) {
+    await putMany('settings', deviceLocalSettings);
   }
 }

@@ -6,6 +6,7 @@ import { getActiveBusiness } from '../db/stores/businessStore.js';
 import { getBank } from '../db/stores/bankStore.js';
 import { amountToWords } from './numberToWords.js';
 import { uid } from '../utils/uid.js';
+import { scheduleAutoBackup } from './autoBackupService.js';
 
 /**
  * Invoice numbering: plain sequential integers. The suggested next number is
@@ -38,6 +39,7 @@ export async function setInvoiceCounterOverride(nextNumber) {
     throw new Error('Invoice number must be a whole number.');
   }
   await settingsStore.setInvoiceCounter(n - 1);
+  scheduleAutoBackup();
 }
 
 /**
@@ -81,14 +83,14 @@ export async function saveInvoiceFromForm(formState) {
 
   const items = [];
   for (const row of formState.items) {
-    const item = await itemService.findOrCreateItem({ name: row.name, hsn: row.hsn });
+    const item = await itemService.findOrCreateItem({ name: row.name, hsn: row.hsn, unit: row.unit });
     items.push({
       itemId: item.id,
       name: item.name,
       hsn: item.hsn,
       bags: row.bags || '',
       qty: Number(row.qty) || 0,
-      unit: row.unit || DEFAULT_QUANTITY_UNIT,
+      unit: item.unit || DEFAULT_QUANTITY_UNIT,
       rate: Number(row.rate) || 0,
       amount: computeItemAmount(row.qty, row.rate),
     });
@@ -137,6 +139,7 @@ export async function saveInvoiceFromForm(formState) {
 
   await invoiceStore.saveInvoice(invoice);
   await recordInvoiceNumberUsed(invoiceNumber);
+  scheduleAutoBackup();
   return invoice;
 }
 

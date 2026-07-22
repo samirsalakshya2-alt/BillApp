@@ -30,3 +30,22 @@ export async function setDraftInvoice(draft) {
 export async function clearDraftInvoice() {
   return remove('settings', 'draftInvoice');
 }
+
+// Automatic backup ------------------------------------------------------------
+/** The user-picked FileSystemDirectoryHandle backups are written into (Chrome/Edge only). */
+export async function getBackupDirHandle() {
+  return getSetting('backupDirHandle', null);
+}
+
+export async function setBackupDirHandle(handle) {
+  return setSetting('backupDirHandle', handle);
+}
+
+/** Ever-increasing counter — the next backup's number is always this + 1, and it's never reset by pruning old backups. */
+export async function getBackupCounter() {
+  return getSetting('backupCounter', 0);
+}
+
+export async function setBackupCounter(value) {
+  return setSetting('backupCounter', value);
+}

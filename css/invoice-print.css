@@ -155,28 +155,32 @@
 .invoice-transport-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
+  gap: 6px;
   font-size: 12.5px;
   margin: 0;
 }
 
 .invoice-transport-field {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   min-width: 0;
 }
 
 .invoice-transport-grid dt {
   color: #6b7686;
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .invoice-transport-grid dd {
-  margin: 2px 0 0;
+  margin: 0;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .invoice-items-table {

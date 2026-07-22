@@ -2,6 +2,7 @@ import { el, mount } from '../../utils/domHelpers.js';
 import { createIcon } from '../components/icons.js';
 import { mountFab } from '../components/fab.js';
 import { getFabRootEl, navigate } from '../../router.js';
+import { getBackupFolderStatus } from '../../services/autoBackupService.js';
 
 const MENU = [
   { icon: 'bills', title: 'Bills', subtitle: 'Search & manage saved bills', hash: '#/bills' },
@@ -22,7 +23,7 @@ function navTile(item) {
   ]);
 }
 
-export function render(container) {
+export async function render(container) {
   const newBillTile = el('button', {
     class: 'nav-tile',
     type: 'button',
@@ -36,9 +37,21 @@ export function render(container) {
     ]),
   ]);
 
+  const status = await getBackupFolderStatus();
+  const setupBanner = status.supported && !status.configured
+    ? el('button', { class: 'card u-flex u-items-center u-gap-3', type: 'button', style: 'width:100%;text-align:left;border:1px dashed var(--color-border-strong);', onclick: () => navigate('#/backup') }, [
+        el('div', { class: 'nav-tile__icon' }, [createIcon('backup', { size: 22 })]),
+        el('div', {}, [
+          el('div', { class: 'u-font-semibold' }, ['Set up automatic backups']),
+          el('div', { class: 'u-text-sm u-text-muted' }, ['Choose a folder so your bills, customers and items are backed up automatically.']),
+        ]),
+      ])
+    : null;
+
   mount(container, [
     el('div', { class: 'u-flex-col u-gap-4' }, [
       newBillTile,
+      setupBanner,
       el('div', { class: 'nav-grid' }, MENU.map(navTile)),
     ]),
   ]);

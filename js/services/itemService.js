@@ -1,5 +1,6 @@
 import * as itemStore from '../db/stores/itemStore.js';
 import { uid } from '../utils/uid.js';
+import { scheduleAutoBackup } from './autoBackupService.js';
 
 export async function listItems() {
   const all = await itemStore.getAllItems();
@@ -13,7 +14,10 @@ export async function searchItems(query) {
   return all.filter((i) => i.name.toLowerCase().includes(q) || (i.hsn || '').includes(q));
 }
 
-/** Manual create/edit from the Item Master screen. Price is never part of this record — it's entered fresh on every invoice line. */
+/** The only unit item master currently supports; every new item defaults to it. */
+export const DEFAULT_ITEM_UNIT = 'Quintal';
+
+/** Manual create/edit from the Item Master screen. Price/quantity/bags/amount are never part of this record — those are entered fresh on every invoice line. */
 export async function saveItem(fields) {
   const name = (fields.name || '').trim();
   const id = fields.id || uid('item');
@@ -23,17 +27,36 @@ export async function saveItem(fields) {
     throw new Error(`An item named "${name}" already exists.`);
   }
 
-  const record = { id, name, nameLower: name.toLowerCase(), hsn: (fields.hsn || '').trim() };
+  const record = {
+    id,
+    name,
+    nameLower: name.toLowerCase(),
+    hsn: (fields.hsn || '').trim(),
+    unit: fields.unit || DEFAULT_ITEM_UNIT,
+  };
   await itemStore.saveItem(record);
+  scheduleAutoBackup();
   return record;
 }
 
 export async function deleteItem(id) {
-  return itemStore.deleteItem(id);
+  const result = await itemStore.deleteItem(id);
+  scheduleAutoBackup();
+  return result;
 }
 
-/** Invoice-line auto-master logic: same-name item (case-insensitive) is the same item; HSN can be refreshed, new items are created on the fly. */
-export async function findOrCreateItem({ name, hsn }) {
+/**
+ * Invoice-line auto-master logic: same-name item (case-insensitive) is the
+ * same item; a new item defaults to the standard unit, and an existing
+ * item's HSN/unit are refreshed with whatever was (possibly edited) on the
+ * bill line.
+ */
+export async function findOrCreateItem({ name, hsn, unit }) {
   const existing = await itemStore.findByNameExact(name);
-  return saveItem({ id: existing?.id, name, hsn: hsn || existing?.hsn });
+  return saveItem({
+    id: existing?.id,
+    name,
+    hsn: hsn || existing?.hsn,
+    unit: unit || existing?.unit || DEFAULT_ITEM_UNIT,
+  });
 }
